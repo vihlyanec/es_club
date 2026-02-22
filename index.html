@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>es club • подписка</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="app" class="app">
+      <header class="app-header">
+        <div class="logo">es club</div>
+        <div class="tagline">разговорная практика • soft skills</div>
+      </header>
+
+      <!-- Screen: tariffs -->
+      <main id="screen-tariffs" class="screen screen--active">
+        <section class="hero">
+          <h1 class="hero__title">выбери подписку</h1>
+          <p class="hero__subtitle">
+            как зал для разговорной мышцы: регулярные speaking clubs, платформа и комьюнити.
+          </p>
+        </section>
+
+        <section class="tariffs">
+          <article class="tariff-card" data-tariff-id="basic">
+            <div class="tariff-card__badge">default</div>
+            <div class="tariff-card__image tariff-card__image--basic"></div>
+            <h2 class="tariff-card__title">es club learn</h2>
+            <p class="tariff-card__description">
+              регулярные speaking clubs, платформа с курсами и чат комьюнити.
+            </p>
+            <div class="tariff-card__actions">
+              <button class="btn btn--secondary js-select-tariff" data-months="1">
+                1 месяц
+              </button>
+              <button class="btn btn--primary js-select-tariff" data-months="3">
+                3 месяца
+              </button>
+            </div>
+          </article>
+
+          <article class="tariff-card tariff-card--highlighted" data-tariff-id="plus">
+            <div class="tariff-card__badge tariff-card__badge--accent">most popular</div>
+            <div class="tariff-card__image tariff-card__image--plus"></div>
+            <h2 class="tariff-card__title">es club learn and practice</h2>
+            <p class="tariff-card__description">
+              всё из базового тарифа + дополнительные headliners и спец-форматы.
+            </p>
+            <div class="tariff-card__actions">
+              <button class="btn btn--secondary js-select-tariff" data-months="1">
+                1 месяц
+              </button>
+              <button class="btn btn--primary js-select-tariff" data-months="3">
+                3 месяца
+              </button>
+            </div>
+          </article>
+        </section>
+
+        <footer class="app-footer">
+          <p>если что-то пойдёт не так — напиши нам, we got you 🤍</p>
+        </footer>
+      </main>
+
+      <!-- Screen: offer / payment -->
+      <main id="screen-payment" class="screen">
+        <button class="back-link" id="back-to-tariffs">&larr; вернуться к тарифам</button>
+
+        <section class="hero hero--compact">
+          <h1 class="hero__title">подтверди подписку</h1>
+          <p class="hero__subtitle">
+            one more step to fluency — проверим детали и оформим оплату.
+          </p>
+        </section>
+
+        <section class="payment-summary">
+          <div class="payment-card">
+            <div class="payment-card__header">
+              <div>
+                <div id="summary-tariff-title" class="payment-card__title">Тариф</div>
+                <div id="summary-tariff-months" class="payment-card__meta">—</div>
+              </div>
+              <div class="payment-card__amount">
+                <div id="summary-amount-wrap" class="payment-card__amount-inner">
+                  <span id="summary-amount-old" class="payment-card__price payment-card__price--old" hidden></span>
+                  <span id="summary-amount" class="payment-card__price">— ₽</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="payment-card__body">
+              <ul class="payment-features">
+                <li>доступ к speaking clubs</li>
+                <li>платформа с курсами и заданиями</li>
+                <li>чат и поддержка комьюнити</li>
+              </ul>
+
+              <label class="field">
+                <span class="field__label">промокод</span>
+                <div class="field__input-wrap">
+                  <input
+                    id="promo-input"
+                    type="text"
+                    class="field__input"
+                    placeholder="если есть – вводи сюда"
+                    autocomplete="off"
+                  />
+                  <span id="promo-throbber" class="throbber" hidden aria-hidden="true"></span>
+                  <button id="promo-submit" class="promo-submit" type="button">→</button>
+                </div>
+              </label>
+
+              <div id="promo-message" class="promo-message" hidden></div>
+            </div>
+
+            <div class="payment-card__footer">
+              <button id="pay-button" class="btn btn--primary btn--full">
+                перейти к оплате
+              </button>
+            </div>
+          </div>
+
+          <p class="payment-note">
+            нажимая «перейти к оплате» бот пришлет ссылку на оплату. если клуб не зайдёт — у тебя
+            будет 7 дней, чтобы передумать, no questions asked.
+          </p>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+  </html>
+
