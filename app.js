@@ -217,20 +217,58 @@ async function handleTariffSelect(tariffId, months) {
   }
 }
 
-  // 2) Сразу закрываем приложение
-  const tg = window.Telegram?.WebApp;
+// Обработка оплаты
+async function handlePay() {
+  if (!state.tariff) return;
 
-  if (tg?.close) {
-    try { tg.close(); } catch (e) {}
+  const { id, months } = state.tariff;
+  const meta = getTariffMeta(id);
 
-    // дубль через тик/задержку — реально повышает шанс закрытия
-    setTimeout(() => { try { tg.close(); } catch (e) {} }, 50);
-    setTimeout(() => { try { tg.close(); } catch (e) {} }, 250);
-    return;
+  let amount = state.amount;
+  if (typeof amount !== "number") {
+    amount = meta.basePrice[months] ?? meta.basePrice[1];
   }
 
-  // Фоллбек: если ты НЕ в Telegram, это почти никогда не закроет вкладку
-  try { window.close(); } catch (e) {}
+  const promoCode = promoInput.value.trim() || null;
+
+  payButton.disabled = true;
+  const oldText = payButton.textContent;
+  payButton.textContent = "отправляем запрос...";
+
+  try {
+    const payload = {
+      tg_id: state.user.tgId,
+      email: state.user.email,
+      tariff_id: id,
+      months,
+      amount,
+      currency: state.currency,
+      promo_code: promoCode,
+      // Дополнительно можно передавать любые данные для логирования
+      meta: {
+        source: "telegram_web_app",
+        user_agent: navigator.userAgent,
+      },
+    };
+
+    await callWebhook(config.paymentUrl, payload);
+
+    // Успешный запрос на вебхук – сворачиваем Telegram Web App (если доступен)
+    if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.close === "function") {
+      window.Telegram.WebApp.close();
+    }
+  } catch (error) {
+    console.error(error);
+    payButton.disabled = false;
+    payButton.textContent = oldText;
+
+    promoMessage.hidden = false;
+    promoMessage.textContent =
+      "что-то пошло не так при создании ссылки. попробуй ещё раз или напиши в саппорт.";
+    promoMessage.classList.remove("promo-message--success");
+    promoMessage.classList.add("promo-message--error");
+  }
+}
 
 async function checkPromoCode(code) {
   if (!code || !state.tariff) return;
