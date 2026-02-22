@@ -250,10 +250,6 @@ async function handlePay() {
     // Успешный запрос на вебхук – сворачиваем Telegram Web App (если доступен)
     if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.close === "function") {
       window.Telegram.WebApp.close();
-    } else {
-      // Фоллбек, если приложение запущено не в Telegram Web App
-      payButton.textContent = "заявка отправлена";
-      payButton.disabled = true;
     }
   } catch (error) {
     console.error(error);
