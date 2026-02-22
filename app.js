@@ -211,7 +211,6 @@ async function handleTariffSelect(tariffId, months) {
   }
 }
 
-// Обработка оплаты
 async function handlePay() {
   if (!state.tariff) return;
 
@@ -227,41 +226,51 @@ async function handlePay() {
 
   payButton.disabled = true;
   const oldText = payButton.textContent;
-  payButton.textContent = "отправляем запрос...";
+  payButton.textContent = "переходим к оплате...";
 
+  const payload = {
+    tg_id: state.user.tgId,
+    email: state.user.email,
+    tariff_id: id,
+    months,
+    amount,
+    currency: state.currency,
+    promo_code: promoCode,
+    meta: {
+      source: "telegram_web_app",
+      user_agent: navigator.userAgent,
+    },
+  };
+
+  // 1) Отправляем запрос без ожидания ответа
   try {
-    const payload = {
-      tg_id: state.user.tgId,
-      email: state.user.email,
-      tariff_id: id,
-      months,
-      amount,
-      currency: state.currency,
-      promo_code: promoCode,
-      // Дополнительно можно передавать любые данные для логирования
-      meta: {
-        source: "telegram_web_app",
-        user_agent: navigator.userAgent,
-      },
-    };
+    const body = JSON.stringify(payload);
 
-    await callWebhook(config.paymentUrl, payload);
-
-    // Успешный запрос на вебхук – сворачиваем Telegram Web App (если доступен)
-    if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.close === "function") {
-      window.Telegram.WebApp.close();
+    // Лучший вариант для закрытия страницы сразу: sendBeacon
+    if (navigator.sendBeacon) {
+      const blob = new Blob([body], { type: "application/json" });
+      navigator.sendBeacon(config.paymentUrl, blob);
+    } else {
+      // Фоллбек: fetch без await + keepalive
+      fetch(config.paymentUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        keepalive: true,
+      }).catch(() => {});
     }
-  } catch (error) {
-    console.error(error);
-    payButton.disabled = false;
-    payButton.textContent = oldText;
-
-    promoMessage.hidden = false;
-    promoMessage.textContent =
-      "что-то пошло не так при создании ссылки. попробуй ещё раз или напиши в саппорт.";
-    promoMessage.classList.remove("promo-message--success");
-    promoMessage.classList.add("promo-message--error");
+  } catch (e) {
+    // Ничего не показываем: всё равно закрываем
   }
+
+  // 2) Сразу закрываем приложение, не дожидаясь ответа
+  if (window.Telegram?.WebApp?.close) {
+    window.Telegram.WebApp.close();
+    return;
+  }
+
+  // Фоллбек для браузера
+  window.close();
 }
 
 async function checkPromoCode(code) {
