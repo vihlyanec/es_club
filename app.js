@@ -1,3 +1,9 @@
+if (window.Telegram?.WebApp) {
+  window.Telegram.WebApp.ready();
+  // необязательно, но часто помогает, чтобы webview был “в активном состоянии”
+  window.Telegram.WebApp.expand();
+}
+
 const config = {
   // URLы твоих вебхуков
   personalOfferUrl: "https://example.com/api/personal-offer",
@@ -211,67 +217,20 @@ async function handleTariffSelect(tariffId, months) {
   }
 }
 
-async function handlePay() {
-  if (!state.tariff) return;
+  // 2) Сразу закрываем приложение
+  const tg = window.Telegram?.WebApp;
 
-  const { id, months } = state.tariff;
-  const meta = getTariffMeta(id);
+  if (tg?.close) {
+    try { tg.close(); } catch (e) {}
 
-  let amount = state.amount;
-  if (typeof amount !== "number") {
-    amount = meta.basePrice[months] ?? meta.basePrice[1];
-  }
-
-  const promoCode = promoInput.value.trim() || null;
-
-  payButton.disabled = true;
-  const oldText = payButton.textContent;
-  payButton.textContent = "переходим к оплате...";
-
-  const payload = {
-    tg_id: state.user.tgId,
-    email: state.user.email,
-    tariff_id: id,
-    months,
-    amount,
-    currency: state.currency,
-    promo_code: promoCode,
-    meta: {
-      source: "telegram_web_app",
-      user_agent: navigator.userAgent,
-    },
-  };
-
-  // 1) Отправляем запрос без ожидания ответа
-  try {
-    const body = JSON.stringify(payload);
-
-    // Лучший вариант для закрытия страницы сразу: sendBeacon
-    if (navigator.sendBeacon) {
-      const blob = new Blob([body], { type: "application/json" });
-      navigator.sendBeacon(config.paymentUrl, blob);
-    } else {
-      // Фоллбек: fetch без await + keepalive
-      fetch(config.paymentUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
-        keepalive: true,
-      }).catch(() => {});
-    }
-  } catch (e) {
-    // Ничего не показываем: всё равно закрываем
-  }
-
-  // 2) Сразу закрываем приложение, не дожидаясь ответа
-  if (window.Telegram?.WebApp?.close) {
-    window.Telegram.WebApp.close();
+    // дубль через тик/задержку — реально повышает шанс закрытия
+    setTimeout(() => { try { tg.close(); } catch (e) {} }, 50);
+    setTimeout(() => { try { tg.close(); } catch (e) {} }, 250);
     return;
   }
 
-  // Фоллбек для браузера
-  window.close();
-}
+  // Фоллбек: если ты НЕ в Telegram, это почти никогда не закроет вкладку
+  try { window.close(); } catch (e) {}
 
 async function checkPromoCode(code) {
   if (!code || !state.tariff) return;
