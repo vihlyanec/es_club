@@ -1,15 +1,11 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const tg = window.Telegram?.WebApp;
+(() => {
+  setTimeout(async () => {
+    // ---------- TG WEB APP ----------
+    const tg = window.Telegram?.WebApp;
 
-  if (tg) {
-    tg.ready();
-    tg.expand();
-
-    if (tg.requestFullscreen) {
-      tg.requestFullscreen();
+    if (tg) {
+      tg.expand();
     }
-  }
-});
 
 const config = {
   // URLы твоих вебхуков
