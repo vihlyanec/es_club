@@ -225,9 +225,9 @@ body {
   appearance: none;
   border: none;
   border-radius: 999px;
-  padding: 10px 16px 11px;
+  padding: 13px 20px 14px;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, background 0.12s ease-out,
@@ -236,6 +236,7 @@ body {
   align-items: center;
   justify-content: center;
   white-space: nowrap;
+  min-height: 44px;
 }
 
 .btn--primary {
@@ -379,6 +380,11 @@ body {
 
 .field__input-wrap {
   position: relative;
+  display: flex;
+  align-items: center;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(5, 8, 22, 0.85);
 }
 
 .field__input-wrap .throbber {
@@ -411,17 +417,15 @@ body {
 }
 
 .promo-submit {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 22px;
-  height: 22px;
+  position: relative;
+  margin-right: 8px;
+  width: 28px;
+  height: 28px;
   border-radius: 999px;
   border: none;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   display: inline-flex;
   align-items: center;
@@ -452,13 +456,14 @@ body {
 }
 
 .field__input {
+  flex: 1;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  padding: 9px 40px 10px 12px;
-  background: rgba(5, 8, 22, 0.85);
+  border: none;
+  padding: 12px 8px 13px 14px;
+  background: transparent;
   color: var(--text);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   outline: none;
   transition: border-color 0.12s ease-out, box-shadow 0.12s ease-out, background 0.12s ease-out;
 }
