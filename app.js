@@ -1,8 +1,15 @@
-if (window.Telegram?.WebApp) {
-  window.Telegram.WebApp.ready();
-  // необязательно, но часто помогает, чтобы webview был “в активном состоянии”
-  window.Telegram.WebApp.expand();
-}
+document.addEventListener("DOMContentLoaded", () => {
+  const tg = window.Telegram?.WebApp;
+
+  if (tg) {
+    tg.ready();
+    tg.expand();
+
+    if (tg.requestFullscreen) {
+      tg.requestFullscreen();
+    }
+  }
+});
 
 const config = {
   // URLы твоих вебхуков
@@ -217,7 +224,6 @@ async function handleTariffSelect(tariffId, months) {
   }
 }
 
-// Обработка оплаты
 async function handlePay() {
   if (!state.tariff) return;
 
@@ -232,42 +238,57 @@ async function handlePay() {
   const promoCode = promoInput.value.trim() || null;
 
   payButton.disabled = true;
-  const oldText = payButton.textContent;
-  payButton.textContent = "отправляем запрос...";
+  payButton.textContent = "переходим к оплате...";
 
+  const payload = {
+    tg_id: state.user.tgId,
+    email: state.user.email,
+    tariff_id: id,
+    months,
+    amount,
+    currency: state.currency,
+    promo_code: promoCode,
+    meta: {
+      source: "telegram_web_app",
+      user_agent: navigator.userAgent,
+    },
+  };
+
+  // --- 1. Отправляем запрос без ожидания ответа ---
   try {
-    const payload = {
-      tg_id: state.user.tgId,
-      email: state.user.email,
-      tariff_id: id,
-      months,
-      amount,
-      currency: state.currency,
-      promo_code: promoCode,
-      // Дополнительно можно передавать любые данные для логирования
-      meta: {
-        source: "telegram_web_app",
-        user_agent: navigator.userAgent,
-      },
-    };
+    const body = JSON.stringify(payload);
 
-    await callWebhook(config.paymentUrl, payload);
-
-    // Успешный запрос на вебхук – сворачиваем Telegram Web App (если доступен)
-    if (window.Telegram && window.Telegram.WebApp && typeof window.Telegram.WebApp.close === "function") {
-      window.Telegram.WebApp.close();
+    // Лучший способ при закрытии страницы
+    if (navigator.sendBeacon) {
+      const blob = new Blob([body], { type: "application/json" });
+      navigator.sendBeacon(config.paymentUrl, blob);
+    } else {
+      // Фоллбек
+      fetch(config.paymentUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        keepalive: true,
+      }).catch(() => {});
     }
-  } catch (error) {
-    console.error(error);
-    payButton.disabled = false;
-    payButton.textContent = oldText;
-
-    promoMessage.hidden = false;
-    promoMessage.textContent =
-      "что-то пошло не так при создании ссылки. попробуй ещё раз или напиши в саппорт.";
-    promoMessage.classList.remove("promo-message--success");
-    promoMessage.classList.add("promo-message--error");
+  } catch (e) {
+    // ничего не делаем — всё равно закрываем
   }
+
+  // --- 2. Закрываем Telegram WebApp ---
+  const tg = window.Telegram?.WebApp;
+
+  if (tg?.close) {
+    try { tg.close(); } catch (e) {}
+
+    // Дублируем вызов — Telegram иногда игнорирует первый
+    setTimeout(() => { try { tg.close(); } catch (e) {} }, 100);
+    setTimeout(() => { try { tg.close(); } catch (e) {} }, 300);
+    return;
+  }
+
+  // Фоллбек для обычного браузера (почти никогда не срабатывает)
+  try { window.close(); } catch (e) {}
 }
 
 async function checkPromoCode(code) {
