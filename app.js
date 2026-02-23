@@ -92,8 +92,8 @@ function getTariffMeta(tariffId) {
       title: "es club learn and practice",
       // Базовые суммы по умолчанию, можешь заменить на свои
       basePrice: {
-        1: 7900,
-        3: 21900,
+        1: 4450,
+        3: 11990,
       },
     };
   }
@@ -102,8 +102,8 @@ function getTariffMeta(tariffId) {
   return {
     title: "es club learn",
     basePrice: {
-      1: 6900,
-      3: 18900,
+      1: 9450,
+      3: 25450,
     },
   };
 }
