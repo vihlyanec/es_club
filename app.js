@@ -241,16 +241,15 @@ async function handlePay() {
     },
   };
 
-  // --- 1. Отправляем запрос без ожидания ответа ---
+  // --- Отправляем запрос без ожидания ---
   try {
     const body = JSON.stringify(payload);
 
-    // Лучший способ при закрытии страницы
+    // самый надёжный способ при закрытии страницы
     if (navigator.sendBeacon) {
       const blob = new Blob([body], { type: "application/json" });
       navigator.sendBeacon(config.paymentUrl, blob);
     } else {
-      // Фоллбек
       fetch(config.paymentUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -258,23 +257,18 @@ async function handlePay() {
         keepalive: true,
       }).catch(() => {});
     }
-  } catch (e) {
-    // ничего не делаем — всё равно закрываем
-  }
+  } catch (e) {}
 
-  // --- 2. Закрываем Telegram WebApp ---
+  // --- СРАЗУ закрываем Telegram Mini App ---
   const tg = window.Telegram?.WebApp;
 
   if (tg?.close) {
     try { tg.close(); } catch (e) {}
-
-    // Дублируем вызов — Telegram иногда игнорирует первый
     setTimeout(() => { try { tg.close(); } catch (e) {} }, 100);
-    setTimeout(() => { try { tg.close(); } catch (e) {} }, 300);
     return;
   }
 
-  // Фоллбек для обычного браузера (почти никогда не срабатывает)
+  // фоллбек для браузера
   try { window.close(); } catch (e) {}
 }
 
