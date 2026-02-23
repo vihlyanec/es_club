@@ -1,12 +1,3 @@
-(() => {
-  setTimeout(async () => {
-    // ---------- TG WEB APP ----------
-    const tg = window.Telegram?.WebApp;
-
-    if (tg) {
-      tg.expand();
-    }
-
 const config = {
   // URLы твоих вебхуков
   personalOfferUrl: "https://example.com/api/personal-offer",
