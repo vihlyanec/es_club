@@ -241,34 +241,43 @@ async function handlePay() {
     },
   };
 
-  // --- Отправляем запрос без ожидания ---
-  try {
-    const body = JSON.stringify(payload);
+  const url = config.paymentUrl;
+  const body = JSON.stringify(payload);
 
-    // самый надёжный способ при закрытии страницы
+  // 1) Отправка БЕЗ preflight: используем text/plain (это "simple request")
+  // n8n получит body строкой, но это ок — дальше JSON.parse() при необходимости.
+  let sent = false;
+
+  try {
     if (navigator.sendBeacon) {
-      const blob = new Blob([body], { type: "application/json" });
-      navigator.sendBeacon(config.paymentUrl, blob);
-    } else {
-      fetch(config.paymentUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
-        keepalive: true,
-      }).catch(() => {});
+      sent = navigator.sendBeacon(url, new Blob([body], { type: "text/plain;charset=UTF-8" }));
     }
   } catch (e) {}
 
-  // --- СРАЗУ закрываем Telegram Mini App ---
-  const tg = window.Telegram?.WebApp;
+  // Фоллбек: fetch без чтения ответа, keepalive + no-cors, чтобы браузер не блокировал
+  if (!sent) {
+    try {
+      fetch(url, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=UTF-8" },
+        body,
+        keepalive: true,
+      }).catch(() => {});
+    } catch (e) {}
+  }
 
+  // 2) Очень короткая пауза, чтобы WebView успел поставить запрос в сеть
+  await new Promise((r) => setTimeout(r, 150));
+
+  // 3) Закрываем Mini App
+  const tg = window.Telegram?.WebApp;
   if (tg?.close) {
     try { tg.close(); } catch (e) {}
-    setTimeout(() => { try { tg.close(); } catch (e) {} }, 100);
+    setTimeout(() => { try { tg.close(); } catch (e) {} }, 200);
     return;
   }
 
-  // фоллбек для браузера
   try { window.close(); } catch (e) {}
 }
 
