@@ -5,6 +5,14 @@ const config = {
   promoCheckUrl: "https://vihlyanec-n8n.ru/webhook/es_club/promocode",
 };
 
+// ===== Инициализация Telegram WebApp =====
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();           // Сообщаем Telegram, что приложение готово
+  tg.expand();          // Раскрываем на весь экран (опционально)
+  tg.enableClosingConfirmation?.();  // Можно убрать, если не нужно подтверждение
+}
+
 /**
  * Получаем tg_id и email из query-параметров Telegram Web App.
  * Пример: https://.../index.html?tg_id=123&email=test%40mail.com
@@ -90,7 +98,6 @@ function getTariffMeta(tariffId) {
   if (tariffId === "es club learn and practice") {
     return {
       title: "es club learn and practice",
-      // Базовые суммы по умолчанию, можешь заменить на свои
       basePrice: {
         1: 7900,
         3: 21900,
@@ -175,16 +182,6 @@ async function handleTariffSelect(tariffId, months) {
 
     const data = await callWebhook(config.personalOfferUrl, payload);
 
-    // Ожидаемый формат ответа можешь подстроить под свой бекенд.
-    // Ниже пример:
-    //
-    // {
-    //   "has_offer": true,
-    //   "amount": 5900,
-    //   "currency": "RUB",
-    //   "message": "у тебя персональная скидка 15%"
-    // }
-
     if (data && data.has_offer) {
       state.personalOffer = data;
       state.amount = typeof data.amount === "number" ? data.amount : null;
@@ -199,16 +196,50 @@ async function handleTariffSelect(tariffId, months) {
         promoMessage.classList.add("promo-message--success");
       }
     } else {
-      // персональных офферов нет – просто переходим на экран подтверждения
       setScreen("payment");
       updatePaymentSummary();
     }
   } catch (error) {
     console.error(error);
-    // В случае ошибки всё равно покажем экран оплаты с базовой ценой
     setScreen("payment");
     updatePaymentSummary();
   }
+}
+
+/**
+ * Надёжное закрытие Telegram Mini App.
+ * Отключаем подтверждение закрытия, пробуем несколько раз с нарастающей задержкой.
+ */
+function closeTelegramApp() {
+  const webapp = window.Telegram?.WebApp;
+  if (!webapp) {
+    // Не в Telegram — пробуем просто закрыть окно
+    try { window.close(); } catch (e) {}
+    return;
+  }
+
+  // Отключаем confirmation dialog, иначе close() может быть заблокирован
+  if (typeof webapp.disableClosingConfirmation === "function") {
+    try { webapp.disableClosingConfirmation(); } catch (e) {}
+  }
+  // Для старых версий SDK, где используется свойство:
+  try { webapp.isClosingConfirmationEnabled = false; } catch (e) {}
+
+  // Пробуем закрыть сразу
+  try { webapp.close(); } catch (e) {}
+
+  // Серия повторных попыток на случай, если первый вызов не сработал
+  const delays = [100, 300, 600, 1000, 2000];
+  delays.forEach((delay) => {
+    setTimeout(() => {
+      try { webapp.close(); } catch (e) {}
+    }, delay);
+  });
+
+  // Последний фоллбек — window.close()
+  setTimeout(() => {
+    try { window.close(); } catch (e) {}
+  }, 3000);
 }
 
 async function handlePay() {
@@ -244,41 +275,37 @@ async function handlePay() {
   const url = config.paymentUrl;
   const body = JSON.stringify(payload);
 
-  // 1) Отправка БЕЗ preflight: используем text/plain (это "simple request")
-  // n8n получит body строкой, но это ок — дальше JSON.parse() при необходимости.
+  // 1) Отправка webhook: sendBeacon (гарантирует доставку даже при закрытии страницы)
   let sent = false;
 
   try {
     if (navigator.sendBeacon) {
-      sent = navigator.sendBeacon(url, new Blob([body], { type: "text/plain;charset=UTF-8" }));
+      const blob = new Blob([body], { type: "application/json" });
+      sent = navigator.sendBeacon(url, blob);
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn("sendBeacon failed:", e);
+  }
 
-  // Фоллбек: fetch без чтения ответа, keepalive + no-cors, чтобы браузер не блокировал
+  // Фоллбек: fetch с keepalive
   if (!sent) {
     try {
       fetch(url, {
         method: "POST",
-        mode: "no-cors",
         headers: { "Content-Type": "text/plain;charset=UTF-8" },
         body,
         keepalive: true,
       }).catch(() => {});
-    } catch (e) {}
+    } catch (e) {
+      console.warn("fetch fallback failed:", e);
+    }
   }
 
-  // 2) Очень короткая пауза, чтобы WebView успел поставить запрос в сеть
-  await new Promise((r) => setTimeout(r, 150));
+  // 2) Даём время на отправку запроса, затем закрываем
+  await new Promise((r) => setTimeout(r, 300));
 
   // 3) Закрываем Mini App
-  const tg = window.Telegram?.WebApp;
-  if (tg?.close) {
-    try { tg.close(); } catch (e) {}
-    setTimeout(() => { try { tg.close(); } catch (e) {} }, 200);
-    return;
-  }
-
-  try { window.close(); } catch (e) {}
+  closeTelegramApp();
 }
 
 async function checkPromoCode(code) {
@@ -302,7 +329,6 @@ async function checkPromoCode(code) {
 
     const data = await callWebhook(config.promoCheckUrl, payload);
 
-    // Ожидаемый ответ: { status: true|false, discount_percent: number }
     state.promoResult = {
       status: data && (data.status === true || data.status === "true"),
       discount_percent: typeof data.discount_percent === "number" ? data.discount_percent : 0,
@@ -382,4 +408,3 @@ function initEvents() {
 
 // Старт
 initEvents();
-
