@@ -302,29 +302,53 @@ async function checkPromoCode(code) {
       promo_code: code,
     };
 
-    const data = await callWebhook(config.promoCheckUrl, payload);
+    // Для промокода обрабатываем ответ аккуратнее: читаем JSON даже при статусах 4xx,
+    // чтобы можно было показать текст ошибки с бэкенда.
+    const res = await fetch(config.promoCheckUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
 
-    // Ожидаемый ответ: { status: true|false, discount_percent: number }
-    state.promoResult = {
-      status: data && (data.status === true || data.status === "true"),
-      discount_percent: typeof data.discount_percent === "number" ? data.discount_percent : 0,
-    };
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (e) {
+      // если не удалось распарсить JSON, оставим data = null
+    }
 
-    if (state.promoResult.status) {
+    // Ожидаемый ответ бэкенда: { status: true|false, discount_percent: number, message?: string }
+    const status =
+      data && (data.status === true || data.status === "true");
+    const discount =
+      data && typeof data.discount_percent === "number"
+        ? data.discount_percent
+        : 0;
+
+    if (res.ok && status && discount > 0) {
+      state.promoResult = {
+        status: true,
+        discount_percent: discount,
+      };
       promoMessage.hidden = false;
       promoMessage.textContent = `скидка ${state.promoResult.discount_percent}% применена`;
       promoMessage.classList.add("promo-message--success");
     } else {
+      // Любой ответ сервера (включая 4xx) трактуем как "промокод не применён",
+      // но если пришло понятное сообщение, покажем его.
       state.promoResult = null;
       promoMessage.hidden = false;
       promoMessage.textContent =
-        (data && typeof data.message === "string" && data.message.trim())
+        data && typeof data.message === "string" && data.message.trim()
           ? data.message.trim()
           : "промокод недействителен или истёк";
       promoMessage.classList.add("promo-message--error");
     }
   } catch (error) {
     console.error(error);
+    // Только при реальной сетевой ошибке/краше показываем общее сообщение "попробуй позже".
     state.promoResult = null;
     promoMessage.hidden = false;
     promoMessage.textContent = "не удалось проверить промокод. попробуй позже.";
