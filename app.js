@@ -87,10 +87,10 @@ async function callWebhook(url, payload) {
 
 // Логика тарифов
 function getTariffMeta(tariffId) {
-  if (tariffId === "es club learn and practice") {
+  // es club • клубы + платформа (или старый plus)
+  if (tariffId === "es club • клубы + платформа" || tariffId === "plus") {
     return {
-      title: "es club learn and practice",
-      // Базовые суммы по умолчанию, можешь заменить на свои
+      title: "es club • клубы + платформа",
       basePrice: {
         1: 9450,
         3: 25450,
@@ -98,9 +98,9 @@ function getTariffMeta(tariffId) {
     };
   }
 
-  // default: basic
+  // es club • платформа (или старый basic)
   return {
-    title: "es club learn",
+    title: "es club • платформа",
     basePrice: {
       1: 4450,
       3: 11990,
