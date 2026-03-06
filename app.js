@@ -235,8 +235,19 @@ async function handlePay() {
     amount,
     currency: state.currency,
     promo_code: promoCode,
+    // Явно передаём статус промокода и размер скидки
     promo_applied:
       !!state.promoResult && state.promoResult.status === true,
+    promo_status:
+      state.promoResult && state.promoResult.status === true
+        ? "applied"
+        : state.promoResult && state.promoResult.status === false
+        ? "rejected"
+        : "not_checked",
+    promo_discount_percent:
+      state.promoResult && typeof state.promoResult.discount_percent === "number"
+        ? state.promoResult.discount_percent
+        : 0,
     meta: {
       source: "telegram_web_app",
       user_agent: navigator.userAgent,
@@ -302,8 +313,8 @@ async function checkPromoCode(code) {
       promo_code: code,
     };
 
-    // Для промокода обрабатываем ответ аккуратнее: читаем JSON даже при статусах 4xx,
-    // чтобы можно было показать текст ошибки с бэкенда.
+    // Отправляем тело как JSON, чтобы бэкенд сразу получал объект.
+    // Важно: на вебхуке должны быть корректно настроены CORS/OPTIONS.
     const res = await fetch(config.promoCheckUrl, {
       method: "POST",
       headers: {
@@ -317,6 +328,7 @@ async function checkPromoCode(code) {
       data = await res.json();
     } catch (e) {
       // если не удалось распарсить JSON, оставим data = null
+      console.error("promo json parse error", e);
     }
 
     // Ожидаемый ответ бэкенда: { status: true|false, discount_percent: number, message?: string }
@@ -347,7 +359,7 @@ async function checkPromoCode(code) {
       promoMessage.classList.add("promo-message--error");
     }
   } catch (error) {
-    console.error(error);
+    console.error("promo request error", error);
     // Только при реальной сетевой ошибке/краше показываем общее сообщение "попробуй позже".
     state.promoResult = null;
     promoMessage.hidden = false;
