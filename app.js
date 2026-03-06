@@ -235,6 +235,8 @@ async function handlePay() {
     amount,
     currency: state.currency,
     promo_code: promoCode,
+    promo_applied:
+      !!state.promoResult && state.promoResult.status === true,
     meta: {
       source: "telegram_web_app",
       user_agent: navigator.userAgent,
