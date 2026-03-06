@@ -4,35 +4,34 @@
     <meta charset="UTF-8" />
     <title>es club • подписка</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./style.css?v=20260223-1" />
   </head>
   <body>
     <div id="app" class="app">
       <header class="app-header">
         <div class="logo">es club</div>
-        <div class="tagline">школа английского с фокусом на живую практику и развитие soft skills</div>
       </header>
 
       <!-- Screen: tariffs -->
       <main id="screen-tariffs" class="screen screen--active">
         <section class="hero">
           <h1 class="hero__title">выбери подписку</h1>
-          <p class="hero__subtitle">
-            как зал для разговорной мышцы: регулярные speaking clubs, платформа и комьюнити.
-          </p>
         </section>
 
         <section class="tariffs">
-          <article class="tariff-card" data-tariff-id="es club learn">
+          <article class="tariff-card" data-tariff-id="es club • платформа">
             <div class="tariff-card__badge">default</div>
-            <div class="tariff-card__image tariff-card__image--es club learn"></div>
-            <h2 class="tariff-card__title">es club learn</h2>
+            <div class="tariff-card__image tariff-card__image--es club • платформа"></div>
+            <h2 class="tariff-card__title">es club • платформа</h2>
             <p class="tariff-card__description">
               доступ ко всем курсам на платформе (300+ часов контента)
             </p>
@@ -46,12 +45,15 @@
             </div>
           </article>
 
-          <article class="tariff-card tariff-card--highlighted" data-tariff-id="es club learn and practice">
+          <article class="tariff-card tariff-card--highlighted" data-tariff-id="es club • клубы + платформа">
             <div class="tariff-card__badge tariff-card__badge--accent">most popular</div>
-            <div class="tariff-card__image tariff-card__image--es club learn and practice"></div>
-            <h2 class="tariff-card__title">es club learn and practice</h2>
+            <div class="tariff-card__image tariff-card__image--es club • клубы + платформа"></div>
+            <h2 class="tariff-card__title">es club • клубы + платформа</h2>
             <p class="tariff-card__description">
-              всё из базового тарифа + дополнительные headliners и спец-форматы.
+              • доступ ко всем курсам на платформе<br />
+              • 8 разговорных клубов в месяц<br />
+              • 4 больших мастер-класса от менторов<br />
+              • чат с участникамии менторами, 100% на английском
             </p>
             <div class="tariff-card__actions">
               <button class="btn btn--secondary js-select-tariff" data-months="1">
@@ -139,7 +141,6 @@
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="./app.js" type="module"></script>
+    <script src="./app.js?v=20260223-1" type="module"></script>
   </body>
   </html>
-
