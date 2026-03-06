@@ -385,6 +385,12 @@ body {
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(5, 8, 22, 0.85);
+  transition: border-color 0.12s ease-out, box-shadow 0.12s ease-out;
+}
+
+.field__input-wrap:focus-within {
+  border-color: rgba(245, 64, 10, 0.7);
+  box-shadow: 0 0 0 1px rgba(245, 64, 10, 0.4);
 }
 
 .field__input-wrap .throbber {
@@ -418,29 +424,31 @@ body {
 
 .promo-submit {
   position: relative;
-  margin-right: 8px;
-  width: 28px;
-  height: 28px;
+  margin: 6px 8px 6px 0;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
   border-radius: 999px;
   border: none;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(245, 64, 10, 0.25);
   color: var(--text);
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.12s ease-out, border-color 0.12s ease-out, color 0.12s ease-out,
-    transform 0.12s ease-out;
+  flex-shrink: 0;
+  transition: background 0.12s ease-out, color 0.12s ease-out, transform 0.12s ease-out;
 }
 
 .promo-submit:hover {
-  color: var(--accent);
+  background: rgba(245, 64, 10, 0.5);
+  color: #fff;
 }
 
 .promo-submit:active {
-  transform: translateY(-50%) scale(0.95);
+  transform: scale(0.95);
 }
 
 .promo-submit:disabled {
@@ -473,9 +481,7 @@ body {
 }
 
 .field__input:focus {
-  border-color: rgba(245, 64, 10, 0.7);
-  background: rgba(5, 8, 22, 0.96);
-  box-shadow: 0 0 0 1px rgba(245, 64, 10, 0.4);
+  outline: none;
 }
 
 .payment-card__footer {
@@ -501,4 +507,3 @@ body {
 .promo-message--error {
   color: var(--danger);
 }
-
